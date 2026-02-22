@@ -8,23 +8,19 @@ import { provideFirestore, getFirestore, connectFirestoreEmulator } from '@angul
 import { provideFunctions, getFunctions, connectFunctionsEmulator } from '@angular/fire/functions';
 import { provideStorage, getStorage, connectStorageEmulator } from '@angular/fire/storage';
 
-import * as environmentModule from '../environments/environment';
-
-const firebaseConfig =
-  (environmentModule as any).environment?.firebaseConfig ?? (environmentModule as any).firebaseConfig;
-
-const useEmulators = true; // ← false quand tu déploies en prod
+// ← Import direct et simple
+import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
 
-    provideFirebaseApp(() => initializeApp(firebaseConfig)),
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
 
     provideAuth(() => {
       const auth = getAuth();
-      if (useEmulators) {
+      if (environment.useEmulators) {
         connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
       }
       return auth;
@@ -32,7 +28,7 @@ export const appConfig: ApplicationConfig = {
 
     provideFirestore(() => {
       const firestore = getFirestore();
-      if (useEmulators) {
+      if (environment.useEmulators) {
         connectFirestoreEmulator(firestore, '127.0.0.1', 8080);
       }
       return firestore;
@@ -40,7 +36,7 @@ export const appConfig: ApplicationConfig = {
 
     provideFunctions(() => {
       const functions = getFunctions();
-      if (useEmulators) {
+      if (environment.useEmulators) {
         connectFunctionsEmulator(functions, '127.0.0.1', 5001);
       }
       return functions;
@@ -48,7 +44,7 @@ export const appConfig: ApplicationConfig = {
 
     provideStorage(() => {
       const storage = getStorage();
-      if (useEmulators) {
+      if (environment.useEmulators) {
         connectStorageEmulator(storage, '127.0.0.1', 9199);
       }
       return storage;
