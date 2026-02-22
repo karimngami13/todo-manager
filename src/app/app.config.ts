@@ -8,14 +8,10 @@ import { provideFirestore, getFirestore, connectFirestoreEmulator } from '@angul
 import { provideFunctions, getFunctions, connectFunctionsEmulator } from '@angular/fire/functions';
 import { provideStorage, getStorage, connectStorageEmulator } from '@angular/fire/storage';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBl3aRO-eDsM5iALRj-Rt2bpzKOeqYBLQ0",
-  authDomain: "todo-manager-prod.firebaseapp.com",
-  projectId: "todo-manager-prod",
-  storageBucket: "todo-manager-prod.firebasestorage.app",
-  messagingSenderId: "108238241356",
-  appId: "1:108238241356:web:f1d3b0e5e4c02592643ee9"
-};
+import * as environmentModule from '../environments/environment';
+
+const firebaseConfig =
+  (environmentModule as any).environment?.firebaseConfig ?? (environmentModule as any).firebaseConfig;
 
 const useEmulators = true; // ← false quand tu déploies en prod
 
