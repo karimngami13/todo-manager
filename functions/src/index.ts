@@ -1,32 +1,84 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import * as admin from 'firebase-admin';
+import { onDocumentWritten, onDocumentDeleted } from 'firebase-functions/v2/firestore';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 
-import {setGlobalOptions} from "firebase-functions";
-import {onRequest} from "firebase-functions/https";
-import * as logger from "firebase-functions/logger";
+admin.initializeApp();
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+const db = admin.firestore();
+const storage = admin.storage();
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+// ─────────────────────────────────────────────────────────────────────────────
+// Function 1 — Calcul automatique du progress des sous-tâches
+// ─────────────────────────────────────────────────────────────────────────────
+export const computeProgress = onDocumentWritten(
+  'todos/{todoId}',
+  async (event) => {
+    const after = event.data?.after?.data();
+    if (!after) return;
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+    const subTasks = after['subTasks'] ?? [];
+    const progress = subTasks.length === 0
+      ? 0
+      : Math.round(
+          (subTasks.filter((t: any) => t.done).length / subTasks.length) * 100
+        );
+
+    // Évite la boucle infinie
+    if (after['progress'] !== progress) {
+      await event.data!.after.ref.update({ progress });
+      console.log(`[computeProgress] Todo ${event.params.todoId} → ${progress}%`);
+    }
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Function 2 — Suppression des photos Storage quand un todo est supprimé
+// ─────────────────────────────────────────────────────────────────────────────
+export const cleanupTodoStorage = onDocumentDeleted(
+  'todos/{todoId}',
+  async (event) => {
+    const photos: { storagePath: string }[] = event.data?.data()?.['photos'] ?? [];
+    if (photos.length === 0) return;
+
+    const bucket = storage.bucket();
+    await Promise.all(
+      photos.map(photo =>
+        bucket.file(photo.storagePath).delete().catch(() => {
+          console.warn(`[cleanupStorage] Fichier introuvable : ${photo.storagePath}`);
+        })
+      )
+    );
+    console.log(`[cleanupStorage] ${photos.length} photo(s) supprimée(s)`);
+  }
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Function 3 — Archivage automatique des todos en retard (toutes les heures)
+// ─────────────────────────────────────────────────────────────────────────────
+export const markOverdueTodos = onSchedule(
+  'every 60 minutes',
+  async () => {
+    const now = admin.firestore.Timestamp.now();
+
+    const snapshot = await db.collection('todos')
+      .where('status', 'in', ['todo', 'in_progress'])
+      .where('deadline', '<', now)
+      .get();
+
+    if (snapshot.empty) {
+      console.log('[markOverdue] Aucun todo en retard');
+      return;
+    }
+
+    const batch = db.batch();
+    snapshot.docs.forEach(doc =>
+      batch.update(doc.ref, {
+        status: 'archived',
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      })
+    );
+
+    await batch.commit();
+    console.log(`[markOverdue] ${snapshot.size} todos archivés`);
+  }
+);
