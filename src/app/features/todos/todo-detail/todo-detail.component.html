@@ -1,1 +1,138 @@
-<p>todo-detail works!</p>
+<div class="page-container">
+
+  @if (!todo()) {
+    <div class="loading">Chargement...</div>
+  } @else {
+
+    <!-- Header -->
+    <div class="detail-header">
+      <a routerLink="/todos">← Retour</a>
+      <div class="header-actions">
+        <a [routerLink]="['/todos', todo()!.id, 'edit']" class="btn-secondary">
+          Modifier
+        </a>
+        <button
+          class="btn-danger"
+          (click)="deleteTodo()"
+          [disabled]="isDeleting()">
+          {{ isDeleting() ? 'Suppression...' : 'Supprimer' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Infos principales -->
+    <div class="detail-card">
+      <div class="detail-top">
+        <h1>{{ todo()!.title }}</h1>
+        <span class="status-badge" [ngClass]="todo()!.status">
+          {{ statusLabel[todo()!.status] }}
+        </span>
+      </div>
+
+      @if (category) {
+        <span class="category-badge"
+          [style.background-color]="category.color ?? '#ccc'">
+          {{ category.name }}
+        </span>
+      }
+
+      @if (todo()!.description) {
+        <p class="description">{{ todo()!.description }}</p>
+      }
+
+      <p class="deadline">
+        📅 Deadline : {{ todo()!.deadline.toDate() | date:'dd/MM/yyyy HH:mm' }}
+      </p>
+
+      <!-- Barre de progression -->
+      @if (todo()!.subTasks.length > 0) {
+        <div class="progress-section">
+          <div class="progress-header">
+            <span>Progression</span>
+            <span>{{ todo()!.progress }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill"
+              [style.width.%]="todo()!.progress">
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Sous-tâches -->
+    @if (todo()!.subTasks.length > 0) {
+      <div class="section-card">
+        <h2>Sous-tâches</h2>
+        <ul class="subtasks-list">
+          @for (subTask of todo()!.subTasks; track subTask.id) {
+            <li
+              class="subtask-item"
+              [class.done]="subTask.done"
+              (click)="toggleSubTask(subTask)">
+              <span class="checkbox">
+                {{ subTask.done ? '✅' : '⬜' }}
+              </span>
+              <span class="subtask-title">{{ subTask.title }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <!-- Photos -->
+    <div class="section-card">
+      <h2>Photos</h2>
+
+      <!-- Upload -->
+      <div class="upload-section">
+        <label class="upload-btn">
+          📎 Ajouter des photos
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            (change)="onFileSelected($event)"
+            style="display:none"
+          />
+        </label>
+
+        @if (uploadProgress() !== null) {
+          <div class="upload-progress">
+            <div class="progress-track">
+              <div class="progress-fill"
+                [style.width.%]="uploadProgress()">
+              </div>
+            </div>
+            <span>{{ uploadProgress() }}%</span>
+          </div>
+        }
+      </div>
+
+      <!-- Galerie -->
+      @if (todo()!.photos.length > 0) {
+        <div class="photos-grid">
+          @for (photo of todo()!.photos; track photo.id) {
+            <div class="photo-item">
+              <img [src]="photo.url" [alt]="'Photo ' + photo.id" />
+              <button
+                class="photo-delete"
+                (click)="deletePhoto(photo)">
+                ✕
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="empty-state">Aucune photo ajoutée</p>
+      }
+    </div>
+
+    <!-- Erreur -->
+    @if (errorMessage()) {
+      <div class="error-banner">{{ errorMessage() }}</div>
+    }
+
+  }
+
+</div>
