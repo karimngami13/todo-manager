@@ -1,1 +1,78 @@
-<p>todo-list works!</p>
+<div class="page-container">
+
+  <!-- Header -->
+  <header class="app-header">
+    <h1>Todo Manager</h1>
+    <div class="header-actions">
+      <span>{{ userEmail() }}</span>
+      <button (click)="logout()">Déconnexion</button>
+      <a routerLink="/todos/new" class="btn-primary">+ Nouveau Todo</a>
+    </div>
+  </header>
+
+  <!-- Vue temporelle -->
+  <div class="time-views">
+    <button
+        [class.active]="filterService.selectedTimeView() === 'all'"
+        (click)="setTimeView('all')">
+        Tous <span class="badge">{{ counts()['all'] }}</span>
+    </button>
+    <button
+        [class.active]="filterService.selectedTimeView() === 'overdue'"
+        (click)="setTimeView('overdue')">
+        🔴 En retard <span class="badge">{{ counts()['overdue'] }}</span>
+    </button>
+    <button
+        [class.active]="filterService.selectedTimeView() === 'today'"
+        (click)="setTimeView('today')">
+        🟡 Aujourd'hui <span class="badge">{{ counts()['today'] }}</span>
+    </button>
+    <button
+        [class.active]="filterService.selectedTimeView() === 'upcoming'"
+        (click)="setTimeView('upcoming')">
+        🟢 À venir <span class="badge">{{ counts()['upcoming'] }}</span>
+    </button>
+</div>
+
+  <!-- Filtres -->
+  <div class="filters">
+    <select (change)="setStatus($any($event.target).value)">
+      <option value="all">Tous les statuts</option>
+      <option value="todo">À faire</option>
+      <option value="in_progress">En cours</option>
+      <option value="done">Terminé</option>
+      <option value="archived">Archivé</option>
+    </select>
+
+    <select (change)="setCategory($any($event.target).value)">
+      <option value="all">Toutes les catégories</option>
+      @for (cat of categories(); track cat.id) {
+        <option [value]="cat.id">{{ cat.name }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Erreur -->
+  @if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  }
+
+  <!-- Liste des todos -->
+  <div class="todos-grid">
+    @if (filteredTodos().length === 0) {
+      <div class="empty-state">
+        <p>Aucun todo trouvé</p>
+        <a routerLink="/todos/new">Créer un todo</a>
+      </div>
+    } @else {
+      @for (todo of filteredTodos(); track todo.id) {
+        <app-todo-card
+          [todo]="todo"
+          [categories]="categories()"
+          (onDelete)="deleteTodo($event)"
+        />
+      }
+    }
+  </div>
+
+</div>

@@ -1,0 +1,44 @@
+<div class="todo-card" [class.overdue]="isOverdue">
+
+  <!-- Header carte -->
+  <div class="card-header">
+    <span class="status-badge" [class]="todo.status">
+      {{ statusLabel }}
+    </span>
+    @if (category) {
+      <span class="category-badge" [style.background-color]="category.color ?? '#ccc'">
+        {{ category.name }}
+      </span>
+    }
+  </div>
+
+  <!-- Titre et description -->
+  <h3>{{ todo.title }}</h3>
+  @if (todo.description) {
+    <p class="description">{{ todo.description }}</p>
+  }
+
+  <!-- Deadline -->
+  <p class="deadline" [class.overdue-text]="isOverdue">
+    📅 {{ todo.deadline.toDate() | date:'dd/MM/yyyy HH:mm' }}
+    @if (isOverdue) { <span>— En retard !</span> }
+  </p>
+
+  <!-- Progress bar (sous-tâches) -->
+  @if (todo.subTasks.length > 0) {
+    <div class="progress-container">
+      <div class="progress-bar" [style.width.%]="todo.progress"></div>
+    </div>
+    <p class="progress-text">
+      {{ todo.subTasks.length }} sous-tâches
+    </p>
+  }
+
+  <!-- Actions -->
+  <div class="card-actions">
+    <a [routerLink]="['/todos', todo.id]">Voir</a>
+    <a [routerLink]="['/todos', todo.id, 'edit']">Modifier</a>
+    <button (click)="onDelete.emit(todo.id)">Supprimer</button>
+  </div>
+
+</div>

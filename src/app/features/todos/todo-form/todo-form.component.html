@@ -1,0 +1,85 @@
+<div class="page-container">
+  <div class="form-card">
+
+    <h1>{{ isEditMode() ? 'Modifier le todo' : 'Nouveau todo' }}</h1>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <!-- Titre -->
+      <div class="form-group">
+        <label>Titre *</label>
+        <input type="text" formControlName="title" placeholder="Titre du todo" />
+        @if (form.get('title')?.invalid && form.get('title')?.touched) {
+          <span class="error">Titre requis (2 caractères minimum)</span>
+        }
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label>Description</label>
+        <textarea formControlName="description" rows="3" placeholder="Description optionnelle"></textarea>
+      </div>
+
+      <!-- Statut -->
+      <div class="form-group">
+        <label>Statut *</label>
+        <select formControlName="status">
+          <option value="todo">À faire</option>
+          <option value="in_progress">En cours</option>
+          <option value="done">Terminé</option>
+          <option value="archived">Archivé</option>
+        </select>
+      </div>
+
+      <!-- Deadline -->
+      <div class="form-group">
+        <label>Deadline *</label>
+        <input type="datetime-local" formControlName="deadline" />
+        @if (form.get('deadline')?.invalid && form.get('deadline')?.touched) {
+          <span class="error">Deadline requise</span>
+        }
+      </div>
+
+      <!-- Catégorie -->
+      <div class="form-group">
+        <label>Catégorie</label>
+        <select formControlName="categoryId">
+          <option [value]="null">Sans catégorie</option>
+          @for (cat of categories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Sous-tâches -->
+      <div class="form-group">
+        <label>Sous-tâches</label>
+        <div formArrayName="subTasks">
+          @for (subTask of subTasksArray.controls; track $index) {
+            <div [formGroupName]="$index" class="subtask-row">
+              <input type="text" formControlName="title" placeholder="Sous-tâche..." />
+              <button type="button" (click)="removeSubTask($index)">✕</button>
+            </div>
+          }
+        </div>
+        <button type="button" class="btn-secondary" (click)="addSubTask()">
+          + Ajouter une sous-tâche
+        </button>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="error-banner">{{ errorMessage() }}</div>
+      }
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <a routerLink="/todos" class="btn-secondary">Annuler</a>
+        <button type="submit" class="btn-primary" [disabled]="isLoading()">
+          {{ isLoading() ? 'Enregistrement...' : (isEditMode() ? 'Modifier' : 'Créer') }}
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>

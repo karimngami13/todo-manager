@@ -30,6 +30,27 @@ export const routes: Routes = [
       import('./features/todos/todo-list/todo-list.component')
         .then(m => m.TodoListComponent)
   },
+  {
+    path: 'todos/new',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/todos/todo-form/todo-form.component')
+        .then(m => m.TodoFormComponent)
+  },
+  {
+    path: 'todos/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/todos/todo-detail/todo-detail.component')
+        .then(m => m.TodoDetailComponent)
+  },
+  {
+    path: 'todos/:id/edit',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/todos/todo-form/todo-form.component')
+        .then(m => m.TodoFormComponent)
+  },
 
   { path: '**', redirectTo: 'todos' }
 ];
