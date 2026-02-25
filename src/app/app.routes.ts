@@ -52,5 +52,14 @@ export const routes: Routes = [
         .then(m => m.TodoFormComponent)
   },
 
+  // routes catégories
+  {
+    path: 'categories',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/categories/category-list/category-list.component')
+        .then(m => m.CategoryListComponent)
+  },
+
   { path: '**', redirectTo: 'todos' }
 ];

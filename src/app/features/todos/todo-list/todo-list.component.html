@@ -1,14 +1,15 @@
 <div class="page-container">
 
   <!-- Header -->
-  <header class="app-header">
-    <h1>Todo Manager</h1>
-    <div class="header-actions">
-      <span>{{ userEmail() }}</span>
-      <button (click)="logout()">Déconnexion</button>
-      <a routerLink="/todos/new" class="btn-primary">+ Nouveau Todo</a>
-    </div>
-  </header>
+<header class="app-header">
+  <h1>Todo Manager</h1>
+  <div class="header-actions">
+    <a routerLink="/categories" class="btn-secondary">📁 Catégories</a>
+    <span>{{ userEmail() }}</span>
+    <button (click)="logout()">Déconnexion</button>
+    <a routerLink="/todos/new" class="btn-primary">+ Nouveau Todo</a>
+  </div>
+</header>
 
   <!-- Vue temporelle -->
   <div class="time-views">

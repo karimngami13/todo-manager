@@ -1,0 +1,117 @@
+<div class="page-container">
+
+  <!-- Header -->
+  <header class="app-header">
+    <h1>Catégories</h1>
+    <a routerLink="/todos" class="btn-secondary">← Retour aux todos</a>
+  </header>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  <!-- Formulaire création -->
+  <div class="form-card">
+    <h2>Nouvelle catégorie</h2>
+    <form [formGroup]="createForm" (ngSubmit)="onCreate()">
+      <div class="form-row">
+
+        <div class="form-group">
+          <label>Nom *</label>
+          <input
+            type="text"
+            formControlName="name"
+            placeholder="Ex: Travail, Personnel..."
+          />
+          @if (createForm.get('name')?.invalid && createForm.get('name')?.touched) {
+            <span class="error">Nom requis (2 caractères minimum)</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Couleur</label>
+          <input type="color" formControlName="color" />
+        </div>
+
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="isLoading()">
+          {{ isLoading() ? 'Création...' : '+ Ajouter' }}
+        </button>
+
+      </div>
+    </form>
+  </div>
+
+  <!-- Liste des catégories -->
+  <div class="categories-list">
+
+    @if (categories().length === 0) {
+      <div class="empty-state">
+        <p>Aucune catégorie créée</p>
+      </div>
+    }
+
+    @for (category of categories(); track category.id) {
+      <div class="category-item">
+
+        <!-- Mode affichage -->
+        @if (editingId() !== category.id) {
+          <div class="category-display">
+            <span
+              class="color-dot"
+              [style.background-color]="category.color ?? '#ccc'">
+            </span>
+            <span class="category-name">{{ category.name }}</span>
+            <div class="category-actions">
+              <button
+                class="btn-secondary"
+                (click)="startEdit(category)">
+                Modifier
+              </button>
+              <button
+                class="btn-danger"
+                (click)="onDelete(category.id)">
+                Supprimer
+              </button>
+            </div>
+          </div>
+
+        <!-- Mode édition inline -->
+        } @else {
+          <form [formGroup]="editForm" (ngSubmit)="onUpdate(category.id)">
+            <div class="form-row">
+
+              <div class="form-group">
+                <input
+                  type="text"
+                  formControlName="name"
+                  placeholder="Nom de la catégorie"
+                />
+                @if (editForm.get('name')?.invalid && editForm.get('name')?.touched) {
+                  <span class="error">Nom requis</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <input type="color" formControlName="color" />
+              </div>
+
+              <button type="submit" class="btn-primary" [disabled]="isLoading()">
+                ✓ Sauvegarder
+              </button>
+              <button type="button" class="btn-secondary" (click)="cancelEdit()">
+                Annuler
+              </button>
+
+            </div>
+          </form>
+        }
+
+      </div>
+    }
+
+  </div>
+
+</div>
