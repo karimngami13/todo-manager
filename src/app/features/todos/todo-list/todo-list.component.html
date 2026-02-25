@@ -1,11 +1,13 @@
 <div class="page-container">
 
-  <!-- Header -->
+<!-- Header -->
 <header class="app-header">
-  <h1>Todo Manager</h1>
+  <div class="brand">
+    <strong>Damotech </strong> <span>Todo Manager</span>
+  </div>
   <div class="header-actions">
     <a routerLink="/categories" class="btn-secondary">📁 Catégories</a>
-    <span>{{ userEmail() }}</span>
+    <span class="user-email">{{ userEmail() }}</span>
     <button (click)="logout()">Déconnexion</button>
     <a routerLink="/todos/new" class="btn-primary">+ Nouveau Todo</a>
   </div>
