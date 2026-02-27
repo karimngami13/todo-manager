@@ -2,12 +2,45 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    match /todos/{todoId} {
-      allow read, write: if request.auth != null;
+    //  Aucun accès par défaut
+    match /{document=**} {
+      allow read, write: if false;
     }
 
+    // Todos 
+    match /todos/{todoId} {
+
+      // Lecture et suppression : seulement le propriétaire
+      allow read, delete: if request.auth != null
+        && resource.data.uid == request.auth.uid;
+
+      // Création : uid doit correspondre + champs obligatoires valides
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.status in ['todo', 'in_progress', 'done', 'archived'];
+
+      // Mise à jour : seulement le propriétaire + uid non modifiable
+      allow update: if request.auth != null
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid;
+    }
+
+    // Categories
     match /categories/{categoryId} {
-      allow read, write: if request.auth != null;
+
+      allow read, delete: if request.auth != null
+        && resource.data.uid == request.auth.uid;
+
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0;
+
+      allow update: if request.auth != null
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid;
     }
   }
 }

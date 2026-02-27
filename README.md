@@ -1,59 +1,87 @@
-# TodoManager
+# Damotech Todo Manager
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.20.
+Application Angular + Firebase développée dans le cadre d'un test technique.
 
-## Development server
+## App live Link : https://todo-manager-prod.web.app
 
-To start a local development server, run:
 
+## Stack technique
+
+- Frontend : Angular 19, TypeScript strict, Standalone Components, Signals
+- Auth : Firebase Authentication (Email/Password + Google)
+- DB : Cloud Firestore
+- Storage : Firebase Cloud Storage
+- Functions : Cloud Functions v2 (3 fonctions)
+- Hosting : Firebase Hosting
+
+## Prérequis
+
+- Node.js >= 20
+- Angular CLI : `npm i -g @angular/cli`
+- Firebase CLI : `npm i -g firebase-tools`
+- Java >= 21 (pour les emulators)
+
+## Installation
 ```bash
+git clone https://github.com/karimngami13/todo-manager.git
+cd todo-manager
+npm install
+cd functions && npm install && cd ..
+cp src/environments/environment.example.ts src/environments/environment.ts
+# Remplir les valeurs Firebase dans environment.ts
+```
+
+## Développement local
+```bash
+# Terminal 1 — Emulators
+firebase emulators:start --export-on-exit=./emulator-data --import=./emulator-data
+
+# Terminal 2 — Angular
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+App disponible sur `http://localhost:4200`
+Emulator UI sur `http://127.0.0.1:4000`
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+## Tests
 ```bash
-ng generate component component-name
+ng test --watch=false --browsers=ChromeHeadless
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
+## Déploiement
 ```bash
-ng generate --help
+ng build --configuration production
+firebase deploy
 ```
 
-## Building
+## Schéma Firestore
+```
+todos/{todoId}
+   uid: string
+   title: string
+   description?: string
+   status: 'todo' | 'in_progress' | 'done' | 'archived'
+   deadline: Timestamp
+   categoryId: string | null
+   progress: number (calculé par Cloud Function)
+   subTasks: SubTask[]
+   photos: TodoPhoto[]
+   createdAt: Timestamp
+   updatedAt: Timestamp
 
-To build the project run:
-
-```bash
-ng build
+categories/{categoryId}
+   uid: string
+   name: string
+   color?: string
+   createdAt: Timestamp
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Décisions techniques
 
-## Running unit tests
+**SubTasks et Photos embarqués** dans le document todo (pas de sous-collections) — lecture atomique, limite 1MB largement suffisante.
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+**Suppression de catégorie** — pas de cascade delete. Les todos gardent leur `categoryId` orphelin et l'UI les affiche "Sans catégorie". Décision intentionnelle pour éviter des écritures massives non contrôlées.
 
-```bash
-ng test
-```
+**Cloud Functions v2** — cold starts réduits, meilleure gestion des erreurs.
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+**Signals + toSignal()** — état réactif moderne sans subscribe() dans les composants.

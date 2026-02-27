@@ -23,7 +23,7 @@
     }
   ],
   "hosting": {
-    "public": "dist/todo-mangaer/browser",
+    "public": "dist/todo-manager/browser",
     "ignore": [
       "firebase.json",
       "**/.*",
